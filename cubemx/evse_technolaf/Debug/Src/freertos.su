@@ -1,0 +1,5 @@
+freertos.c:148:5:cmpfunc	0	static
+freertos.c:130:6:StartDefaultTask	8	static
+freertos.c:158:6:StartTaskPilot	88	static
+freertos.c:236:6:StartTaskMainTask	16	static
+freertos.c:78:6:MX_FREERTOS_Init	88	static

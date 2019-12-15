@@ -1,0 +1,88 @@
+Configuration	evse_technolaf
+STM32CubeMX 	5.1.0
+Date	11/30/2019
+MCU	STM32F051R8Tx
+
+
+
+PERIPHERALS	MODES	FUNCTIONS	PINS
+ADC	IN1	ADC_IN1	PA1
+ADC	IN2	ADC_IN2	PA2
+ADC	IN3	ADC_IN3	PA3
+ADC	IN4	ADC_IN4	PA4
+ADC	IN5	ADC_IN5	PA5
+SYS	Serial_Wire	SYS_SWCLK	PA14
+SYS	Serial_Wire	SYS_SWDIO	PA13
+SYS	SysTick	SYS_VS_Systick	VP_SYS_VS_Systick
+TIM3	PWM Generation CH1	TIM3_CH1	PA6
+
+
+
+Pin Nb	PINs	FUNCTIONs	LABELs
+14	PA0	GPIO_EXTI0	B1 [Blue PushButton]
+15	PA1	ADC_IN1	
+16	PA2	ADC_IN2	
+17	PA3	ADC_IN3	
+20	PA4	ADC_IN4	
+21	PA5	ADC_IN5	
+22	PA6	TIM3_CH1	
+26	PB0	GPIO_Output	
+27	PB1	GPIO_Output	
+39	PC8	GPIO_Output	LD4 [Blue Led]
+40	PC9	GPIO_Output	LD3 [Green Led]
+46	PA13	SYS_SWDIO	SWDIO
+49	PA14	SYS_SWCLK	SWCLK
+PERIPHERALS	MODES	FUNCTIONS	PINS
+ADC	IN1	ADC_IN1	PA1
+ADC	IN2	ADC_IN2	PA2
+ADC	IN3	ADC_IN3	PA3
+ADC	IN4	ADC_IN4	PA4
+ADC	IN5	ADC_IN5	PA5
+SYS	Serial_Wire	SYS_SWCLK	PA14
+SYS	Serial_Wire	SYS_SWDIO	PA13
+SYS	SysTick	SYS_VS_Systick	VP_SYS_VS_Systick
+TIM3	PWM Generation CH1	TIM3_CH1	PA6
+
+
+
+Pin Nb	PINs	FUNCTIONs	LABELs
+14	PA0	GPIO_EXTI0	B1 [Blue PushButton]
+15	PA1	ADC_IN1	
+16	PA2	ADC_IN2	
+17	PA3	ADC_IN3	
+20	PA4	ADC_IN4	
+21	PA5	ADC_IN5	
+22	PA6	TIM3_CH1	
+26	PB0	GPIO_Output	
+27	PB1	GPIO_Output	
+39	PC8	GPIO_Output	LD4 [Blue Led]
+40	PC9	GPIO_Output	LD3 [Green Led]
+46	PA13	SYS_SWDIO	SWDIO
+49	PA14	SYS_SWCLK	SWCLK
+
+
+
+SOFTWARE PROJECT
+
+Project Settings : 
+Project Name : evse_technolaf
+Project Folder : C:\Users\Laf\OneDrive\05_Technolaf\evse_technolaf_sw\cubemx\evse_technolaf
+Toolchain / IDE : EWARM V8
+Firmware Package Name and Version : STM32Cube FW_F0 V1.9.0
+
+
+Code Generation Settings : 
+STM32Cube Firmware Library Package : Copy all used libraries into the project folder
+Generate peripheral initialization as a pair of '.c/.h' files per peripheral : No
+Backup previously generated files when re-generating : No
+Delete previously generated files when not re-generated : Yes
+Set all free pins as analog (to optimize the power consumption) : No
+
+
+Toolchains Settings : 
+Compiler Optimizations : 
+
+
+
+
+
