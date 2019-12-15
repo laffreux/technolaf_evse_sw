@@ -21,23 +21,23 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   ALLOC
   8 .ARM.attributes 00000028  00000000  00000000  00020008  2**0
                   CONTENTS, READONLY
-  9 .debug_info   0001d156  00000000  00000000  00020030  2**0
+  9 .debug_info   0001d159  00000000  00000000  00020030  2**0
                   CONTENTS, READONLY, DEBUGGING
- 10 .debug_abbrev 00003b10  00000000  00000000  0003d186  2**0
+ 10 .debug_abbrev 00003b10  00000000  00000000  0003d189  2**0
                   CONTENTS, READONLY, DEBUGGING
- 11 .debug_loc    0000b150  00000000  00000000  00040c96  2**0
+ 11 .debug_loc    0000b150  00000000  00000000  00040c99  2**0
                   CONTENTS, READONLY, DEBUGGING
- 12 .debug_aranges 00000fd0  00000000  00000000  0004bde8  2**3
+ 12 .debug_aranges 00000fd0  00000000  00000000  0004bdf0  2**3
                   CONTENTS, READONLY, DEBUGGING
- 13 .debug_ranges 00001030  00000000  00000000  0004cdb8  2**3
+ 13 .debug_ranges 00001030  00000000  00000000  0004cdc0  2**3
                   CONTENTS, READONLY, DEBUGGING
- 14 .debug_line   00008114  00000000  00000000  0004dde8  2**0
+ 14 .debug_line   00008116  00000000  00000000  0004ddf0  2**0
                   CONTENTS, READONLY, DEBUGGING
- 15 .debug_str    00004d36  00000000  00000000  00055efc  2**0
+ 15 .debug_str    00004d36  00000000  00000000  00055f06  2**0
                   CONTENTS, READONLY, DEBUGGING
- 16 .comment      0000007c  00000000  00000000  0005ac32  2**0
+ 16 .comment      0000007c  00000000  00000000  0005ac3c  2**0
                   CONTENTS, READONLY
- 17 .debug_frame  00002a9c  00000000  00000000  0005acb0  2**2
+ 17 .debug_frame  00002a9c  00000000  00000000  0005acb8  2**2
                   CONTENTS, READONLY, DEBUGGING
 
 Disassembly of section .text:
@@ -9901,8 +9901,8 @@ void MX_DMA_Init(void)
 08003cb8 <cmpfunc>:
 }
 
-/* USER CODE BEGIN Header_StartTaskPilot */
-
+/* Private application code --------------------------------------------------*/
+/* USER CODE BEGIN Application */
 int cmpfunc (const void * a, const void * b) {
    return ( *(int*)a - *(int*)b );
  8003cb8:	6800      	ldr	r0, [r0, #0]
@@ -9921,25 +9921,13 @@ int cmpfunc (const void * a, const void * b) {
 	...
 
 08003ccc <StartTaskPilot>:
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_StartTaskPilot */
-void StartTaskPilot(void const * argument)
 {
  8003ccc:	b5f0      	push	{r4, r5, r6, r7, lr}
  8003cce:	46c6      	mov	lr, r8
  8003cd0:	b500      	push	{lr}
  8003cd2:	b090      	sub	sp, #64	; 0x40
-  uint32_t time_elapsed = 0;
-  uint32_t samplectr = 0;
-  int32_t sum = 0;
-
-  // Adjust the pilot PWM
   adc_Start();
  8003cd4:	f7ff ffb6 	bl	8003c44 <adc_Start>
-
-  // init the buffer to the highest voltage (car unplugged)
   for(int i = 0; i < BUFFER_SIZE; i++){
  8003cd8:	2300      	movs	r3, #0
  8003cda:	e004      	b.n	8003ce6 <StartTaskPilot+0x1a>
@@ -9957,11 +9945,6 @@ void StartTaskPilot(void const * argument)
  8003cee:	26ff      	movs	r6, #255	; 0xff
  8003cf0:	2400      	movs	r4, #0
  8003cf2:	e01a      	b.n	8003d2a <StartTaskPilot+0x5e>
-
-		// use an average of half of the highest samples
-		qsort(samples, BUFFER_SIZE, sizeof(int), cmpfunc);
-		sum = 0;
-		for(int i = BUFFER_SIZE /2; i < BUFFER_SIZE; i++){
 			sum += samples[i];
  8003cf4:	0099      	lsls	r1, r3, #2
  8003cf6:	466a      	mov	r2, sp
@@ -9971,13 +9954,10 @@ void StartTaskPilot(void const * argument)
  8003cfc:	3301      	adds	r3, #1
  8003cfe:	2b0f      	cmp	r3, #15
  8003d00:	d9f8      	bls.n	8003cf4 <StartTaskPilot+0x28>
-		}
 		filtered = sum / (BUFFER_SIZE /2);
  8003d02:	08e4      	lsrs	r4, r4, #3
 		samples[samplectr++ % BUFFER_SIZE] = pilot_voltage;
  8003d04:	4647      	mov	r7, r8
-	}
-
 	if(filtered > 1600 && filtered < 2100 && time_elapsed > STATE_MIN_DELAY){
  8003d06:	0022      	movs	r2, r4
  8003d08:	21f9      	movs	r1, #249	; 0xf9
@@ -9992,11 +9972,6 @@ void StartTaskPilot(void const * argument)
  8003d18:	2202      	movs	r2, #2
  8003d1a:	4b1d      	ldr	r3, [pc, #116]	; (8003d90 <StartTaskPilot+0xc4>)
  8003d1c:	701a      	strb	r2, [r3, #0]
-		PilotState = PILOT_VEHICLE_PRESENT;
-	} else if(filtered >= 2450 && time_elapsed > STATE_MIN_DELAY) {
-		PilotState = PILOT_VEHICLE_NOT_DETECTED;
-	}
-
 	if(PilotState != old_state) {
  8003d1e:	4b1c      	ldr	r3, [pc, #112]	; (8003d90 <StartTaskPilot+0xc4>)
  8003d20:	781b      	ldrb	r3, [r3, #0]
@@ -10070,18 +10045,8 @@ void StartTaskPilot(void const * argument)
  8003d9c:	00000991 	.word	0x00000991
 
 08003da0 <StartTaskMainTask>:
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_StartTaskMainTask */
-void StartTaskMainTask(void const * argument)
 {
  8003da0:	b570      	push	{r4, r5, r6, lr}
-  enum states {IDLE, PRESENT, CHARGING, FAULT};
-  uint8_t state = IDLE;
-  BOOLEAN blinker_blue = FALSE;
-  BOOLEAN blinker_green = FALSE;
-  // turn ON D8 ( Power present )
   set_indicator(LED_POWER, TRUE);
  8003da2:	2101      	movs	r1, #1
  8003da4:	2002      	movs	r0, #2
@@ -10101,19 +10066,9 @@ void StartTaskMainTask(void const * argument)
   uint8_t state = IDLE;
  8003dbe:	2400      	movs	r4, #0
  8003dc0:	e026      	b.n	8003e10 <StartTaskMainTask+0x70>
-    	// turn OFF D12 (Trouble indicator)
-		set_indicator(LED_FAULT, FALSE);
-
-
-		if(PilotState == PILOT_READY){
     		state = CHARGING;
  8003dc2:	2402      	movs	r4, #2
  8003dc4:	e024      	b.n	8003e10 <StartTaskMainTask+0x70>
-		set_indicator(LED_CHARGING, TRUE);
-    	// turn OFF D12 (Trouble indicator)
-		set_indicator(LED_FAULT, FALSE);
-
-		if(PilotState == PILOT_VEHICLE_PRESENT){
     		state = PRESENT;
  8003dc6:	2401      	movs	r4, #1
  8003dc8:	e022      	b.n	8003e10 <StartTaskMainTask+0x70>
@@ -10177,35 +10132,25 @@ void StartTaskMainTask(void const * argument)
  8003e36:	d044      	beq.n	8003ec2 <StartTaskMainTask+0x122>
  8003e38:	2c03      	cmp	r4, #3
  8003e3a:	d1e9      	bne.n	8003e10 <StartTaskMainTask+0x70>
-
-
-    	break;
-    case FAULT:
-    	// turn OFF debug led green
     	set_indicator(LED_DISCO_GREEN, FALSE);
  8003e3c:	2100      	movs	r1, #0
  8003e3e:	2001      	movs	r0, #1
  8003e40:	f000 f920 	bl	8004084 <set_indicator>
-    	// turn OFF contactor
     	set_contactor(FALSE);
  8003e44:	2000      	movs	r0, #0
  8003e46:	f000 f909 	bl	800405c <set_contactor>
-    	// turn ON D9 (Ready to charge indicator)
     	set_indicator(LED_READY, FALSE);
  8003e4a:	2100      	movs	r1, #0
  8003e4c:	2003      	movs	r0, #3
  8003e4e:	f000 f919 	bl	8004084 <set_indicator>
-    	// turn ON D10 (Connected vehicle indicator)
     	set_indicator(LED_CONNECTED, FALSE);
  8003e52:	2100      	movs	r1, #0
  8003e54:	2004      	movs	r0, #4
  8003e56:	f000 f915 	bl	8004084 <set_indicator>
-    	// turn OFF D11 (Vehicle charging indicator)
 		set_indicator(LED_CHARGING, FALSE);
  8003e5a:	2100      	movs	r1, #0
  8003e5c:	2005      	movs	r0, #5
  8003e5e:	f000 f911 	bl	8004084 <set_indicator>
-    	// turn OFF D12 (Trouble indicator)
 		set_indicator(LED_FAULT, TRUE);
  8003e62:	2101      	movs	r1, #1
  8003e64:	2006      	movs	r0, #6

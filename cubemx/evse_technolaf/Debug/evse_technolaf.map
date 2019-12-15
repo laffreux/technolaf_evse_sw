@@ -7371,7 +7371,7 @@ LOAD c:/program files (x86)/atollic/truestudio for stm32 9.3.0/armtools/bin/../l
  .bss.PilotState
                 0x20000d68        0x1 Src\freertos.o
  *fill*         0x20000d69        0x1 
- .bss.freectr.8045
+ .bss.freectr.8044
                 0x20000d6a        0x2 Src\freertos.o
  *(COMMON)
  COMMON         0x20000d6c        0x4 Drivers\STM32F0xx_HAL_Driver\Src\stm32f0xx_hal.o
@@ -7503,7 +7503,7 @@ LOAD c:/program files (x86)/atollic/truestudio for stm32 9.3.0/armtools/bin/../l
                 0x0000078b       0x1e c:/program files (x86)/atollic/truestudio for stm32 9.3.0/armtools/bin/../lib/gcc/arm-atollic-eabi/6.3.1/armv6-m/crtn.o
 OUTPUT(evse_technolaf.elf elf32-littlearm)
 
-.debug_info     0x00000000    0x1d156
+.debug_info     0x00000000    0x1d159
  .debug_info    0x00000000      0xe70 Drivers\STM32F0xx_HAL_Driver\Src\stm32f0xx_hal.o
  .debug_info    0x00000e70     0x1669 Drivers\STM32F0xx_HAL_Driver\Src\stm32f0xx_hal_adc.o
  .debug_info    0x000024d9      0xfdb Drivers\STM32F0xx_HAL_Driver\Src\stm32f0xx_hal_cortex.o
@@ -7520,15 +7520,15 @@ OUTPUT(evse_technolaf.elf elf32-littlearm)
  .debug_info    0x00010d77     0x23cd Middlewares\Third_Party\FreeRTOS\Source\tasks.o
  .debug_info    0x00013144     0x1296 Src\adc.o
  .debug_info    0x000143da      0xb25 Src\dma.o
- .debug_info    0x00014eff     0x17c2 Src\freertos.o
- .debug_info    0x000166c1      0xe01 Src\gpio.o
- .debug_info    0x000174c2     0x1284 Src\main.o
- .debug_info    0x00018746      0xb24 Src\stm32f0xx_hal_msp.o
- .debug_info    0x0001926a     0x1117 Src\stm32f0xx_hal_timebase_tim.o
- .debug_info    0x0001a381      0xe10 Src\stm32f0xx_it.o
- .debug_info    0x0001b191      0xa67 Src\system_stm32f0xx.o
- .debug_info    0x0001bbf8     0x14c7 Src\tim.o
- .debug_info    0x0001d0bf       0x97 startup\startup_stm32f051x8.o
+ .debug_info    0x00014eff     0x17c5 Src\freertos.o
+ .debug_info    0x000166c4      0xe01 Src\gpio.o
+ .debug_info    0x000174c5     0x1284 Src\main.o
+ .debug_info    0x00018749      0xb24 Src\stm32f0xx_hal_msp.o
+ .debug_info    0x0001926d     0x1117 Src\stm32f0xx_hal_timebase_tim.o
+ .debug_info    0x0001a384      0xe10 Src\stm32f0xx_it.o
+ .debug_info    0x0001b194      0xa67 Src\system_stm32f0xx.o
+ .debug_info    0x0001bbfb     0x14c7 Src\tim.o
+ .debug_info    0x0001d0c2       0x97 startup\startup_stm32f051x8.o
 
 .debug_abbrev   0x00000000     0x3b10
  .debug_abbrev  0x00000000      0x2b9 Drivers\STM32F0xx_HAL_Driver\Src\stm32f0xx_hal.o
@@ -7659,7 +7659,7 @@ OUTPUT(evse_technolaf.elf elf32-littlearm)
  .debug_ranges  0x00000fd8       0x38 Src\tim.o
  .debug_ranges  0x00001010       0x20 startup\startup_stm32f051x8.o
 
-.debug_line     0x00000000     0x8114
+.debug_line     0x00000000     0x8116
  .debug_line    0x00000000      0x42d Drivers\STM32F0xx_HAL_Driver\Src\stm32f0xx_hal.o
  .debug_line    0x0000042d      0x7ff Drivers\STM32F0xx_HAL_Driver\Src\stm32f0xx_hal_adc.o
  .debug_line    0x00000c2c      0x3c9 Drivers\STM32F0xx_HAL_Driver\Src\stm32f0xx_hal_cortex.o
@@ -7676,15 +7676,15 @@ OUTPUT(evse_technolaf.elf elf32-littlearm)
  .debug_line    0x00005655      0xbf6 Middlewares\Third_Party\FreeRTOS\Source\tasks.o
  .debug_line    0x0000624b      0x349 Src\adc.o
  .debug_line    0x00006594      0x24e Src\dma.o
- .debug_line    0x000067e2      0x4b8 Src\freertos.o
- .debug_line    0x00006c9a      0x2b1 Src\gpio.o
- .debug_line    0x00006f4b      0x378 Src\main.o
- .debug_line    0x000072c3      0x25d Src\stm32f0xx_hal_msp.o
- .debug_line    0x00007520      0x2f0 Src\stm32f0xx_hal_timebase_tim.o
- .debug_line    0x00007810      0x2b5 Src\stm32f0xx_it.o
- .debug_line    0x00007ac5      0x253 Src\system_stm32f0xx.o
- .debug_line    0x00007d18      0x379 Src\tim.o
- .debug_line    0x00008091       0x83 startup\startup_stm32f051x8.o
+ .debug_line    0x000067e2      0x4ba Src\freertos.o
+ .debug_line    0x00006c9c      0x2b1 Src\gpio.o
+ .debug_line    0x00006f4d      0x378 Src\main.o
+ .debug_line    0x000072c5      0x25d Src\stm32f0xx_hal_msp.o
+ .debug_line    0x00007522      0x2f0 Src\stm32f0xx_hal_timebase_tim.o
+ .debug_line    0x00007812      0x2b5 Src\stm32f0xx_it.o
+ .debug_line    0x00007ac7      0x253 Src\system_stm32f0xx.o
+ .debug_line    0x00007d1a      0x379 Src\tim.o
+ .debug_line    0x00008093       0x83 startup\startup_stm32f051x8.o
 
 .debug_str      0x00000000     0x4d36
  .debug_str     0x00000000      0xa01 Drivers\STM32F0xx_HAL_Driver\Src\stm32f0xx_hal.o

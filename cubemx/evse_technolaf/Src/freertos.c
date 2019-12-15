@@ -61,7 +61,7 @@ osMessageQId ChargingStatusHandle;
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
-
+int cmpfunc (const void * a, const void * b);
 /* USER CODE END FunctionPrototypes */
 
 void StartDefaultTask(void const * argument);
@@ -145,9 +145,7 @@ void StartDefaultTask(void const * argument)
 
 /* USER CODE BEGIN Header_StartTaskPilot */
 
-int cmpfunc (const void * a, const void * b) {
-   return ( *(int*)a - *(int*)b );
-}
+
 
 /**
 * @brief Function implementing the Pilot thread.
@@ -159,9 +157,13 @@ void StartTaskPilot(void const * argument)
 {
   /* USER CODE BEGIN StartTaskPilot */
 
-
+  // ADC sample period
   const uint32_t SAMPLE_PERIOD = 9;	// ms	(to be exact, it must be a multiple of 1/733)
-  const uint32_t STATE_MIN_DELAY = 500 / SAMPLE_PERIOD; // ms
+
+  // minimum delay before changing the state of the pilot
+  const uint32_t STATE_MIN_DELAY = 500 / SAMPLE_PERIOD; // ms / period
+
+  // buffer to store adc samples
   static const uint32_t BUFFER_SIZE = 16;
   int samples[BUFFER_SIZE];	// circular buffer that contains the adc samples in mV
   int pilot_voltage = 0;
@@ -172,7 +174,6 @@ void StartTaskPilot(void const * argument)
   uint32_t samplectr = 0;
   int32_t sum = 0;
 
-  // Adjust the pilot PWM
   adc_Start();
 
   // init the buffer to the highest voltage (car unplugged)
@@ -186,7 +187,6 @@ void StartTaskPilot(void const * argument)
   {
 
 	osDelay(SAMPLE_PERIOD);
-	// wait 500 us
 
 	time_elapsed++;
 
@@ -195,7 +195,6 @@ void StartTaskPilot(void const * argument)
 
 	// take into account only samples which occurs during positive PWM
 	if(pilot_voltage > 1400){
-		// Measure and apply an IIR filter
 		samples[samplectr++ % BUFFER_SIZE] = pilot_voltage;
 
 		// use an average of half of the highest samples
@@ -207,12 +206,16 @@ void StartTaskPilot(void const * argument)
 		filtered = sum / (BUFFER_SIZE /2);
 	}
 
-	if(filtered > 1600 && filtered < 2100 && time_elapsed > STATE_MIN_DELAY){
+	// Here we change the state according to the voltage of the
+	// Pilot (seen by the MCU)
+	// State A => PILOT_VEHICLE_NOT_DETECTED
+	// State B => PILOT_VEHICLE_PRESENT
+	// State C => PILOT_READY
+	if(filtered > 1600 && filtered < 2000 && time_elapsed > STATE_MIN_DELAY){
 		PilotState = PILOT_READY;
-
-	} else if(filtered >= 2200 && filtered < 2400 && time_elapsed > STATE_MIN_DELAY){
+	} else if(filtered >= 2100 && filtered < 2250 && time_elapsed > STATE_MIN_DELAY){
 		PilotState = PILOT_VEHICLE_PRESENT;
-	} else if(filtered >= 2450 && time_elapsed > STATE_MIN_DELAY) {
+	} else if(filtered >= 2350 && time_elapsed > STATE_MIN_DELAY) {
 		PilotState = PILOT_VEHICLE_NOT_DETECTED;
 	}
 
@@ -243,15 +246,17 @@ void StartTaskMainTask(void const * argument)
   BOOLEAN blinker_green = FALSE;
   // turn ON D8 ( Power present )
   set_indicator(LED_POWER, TRUE);
+  // turn OFF contactor (it should be already off... just to make sure)
   set_contactor(FALSE);
+  // No PWM during state A
   set_pwm(FALSE, 0.0);
   /* Infinite loop */
   for(;;)
   {
-
+	// wait 20 ms, to let other tasks running
 	osDelay(20);
 	freectr++;
-    // blink blue disco
+    // blink blue disco led
 	if(freectr % 10 == 0){
 		set_indicator(LED_DISCO_BLUE, blinker_blue = !blinker_blue);
 	}
@@ -363,7 +368,9 @@ void StartTaskMainTask(void const * argument)
 
 /* Private application code --------------------------------------------------*/
 /* USER CODE BEGIN Application */
-     
+int cmpfunc (const void * a, const void * b) {
+   return ( *(int*)a - *(int*)b );
+}
 /* USER CODE END Application */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
