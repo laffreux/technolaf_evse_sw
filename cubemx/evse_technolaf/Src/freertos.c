@@ -261,13 +261,14 @@ void StartTaskMainTask(void const * argument)
 		set_indicator(LED_DISCO_BLUE, blinker_blue = !blinker_blue);
 	}
 
-//	if(HAL_GPIO_ReadPin(BUTTON_GPIO_Port, BUTTON_Pin) == GPIO_PIN_SET){
-//		set_contactor(TRUE);
-//		set_indicator(LED_DISCO_GREEN, TRUE);
-//	} else {
-//		set_contactor(FALSE);
-//		set_indicator(LED_DISCO_GREEN, FALSE);
-//	}
+	if(HAL_GPIO_ReadPin(BUTTON_GPIO_Port, BUTTON_Pin) == GPIO_PIN_SET){
+		set_contactor(TRUE);
+		set_indicator(LED_DISCO_GREEN, TRUE);
+	} else {
+		set_contactor(FALSE);
+		set_indicator(LED_DISCO_GREEN, FALSE);
+	}
+	state = 99;
 
 
     switch(state){
