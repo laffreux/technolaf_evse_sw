@@ -85,6 +85,14 @@ void Error_Handler(void);
 #define LD4_GPIO_Port GPIOC
 #define LD3_Pin GPIO_PIN_9
 #define LD3_GPIO_Port GPIOC
+#define DIPSW0_Pin GPIO_PIN_8
+#define DIPSW0_GPIO_Port GPIOA
+#define DIPSW1_Pin GPIO_PIN_9
+#define DIPSW1_GPIO_Port GPIOA
+#define DIPSW2_Pin GPIO_PIN_10
+#define DIPSW2_GPIO_Port GPIOA
+#define DIPSW3_Pin GPIO_PIN_11
+#define DIPSW3_GPIO_Port GPIOA
 #define SWDIO_Pin GPIO_PIN_13
 #define SWDIO_GPIO_Port GPIOA
 #define SWCLK_Pin GPIO_PIN_14

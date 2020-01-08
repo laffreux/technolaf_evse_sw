@@ -40,8 +40,11 @@ void MX_ADC_Init(void);
 
 /* USER CODE BEGIN Prototypes */
 void adc_Start(void);
-int16_t read_pilot_voltage(void);
-
+uint16_t read_pilot_voltage(void);
+uint16_t read_line1_voltage(void);
+uint16_t read_line2_voltage(void);
+uint16_t read_current(void);
+uint16_t read_gfi(void);
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus

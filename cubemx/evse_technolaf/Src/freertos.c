@@ -30,6 +30,7 @@
 #include "tim.h"
 #include "gpio.h"
 #include <stdlib.h>
+#include <math.h>
 typedef enum states { PILOT_VEHICLE_NOT_DETECTED, PILOT_VEHICLE_PRESENT, PILOT_READY } PILOT_STATE;
 
 /* USER CODE END Includes */
@@ -52,19 +53,21 @@ typedef enum states { PILOT_VEHICLE_NOT_DETECTED, PILOT_VEHICLE_PRESENT, PILOT_R
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
 static PILOT_STATE PilotState = PILOT_VEHICLE_NOT_DETECTED;
-
+static double v_line_rms;
+static double EVSECurrent = 26.0;
+static uint16_t GFILevel = 0;
+static double MeasuredCurrent;
 /* USER CODE END Variables */
-osThreadId defaultTaskHandle;
+osThreadId CheckHandle;
 osThreadId PilotHandle;
 osThreadId MainTaskHandle;
-osMessageQId ChargingStatusHandle;
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
 int cmpfunc (const void * a, const void * b);
 /* USER CODE END FunctionPrototypes */
 
-void StartDefaultTask(void const * argument);
+void StartCheckTask(void const * argument);
 void StartTaskPilot(void const * argument);
 void StartTaskMainTask(void const * argument);
 
@@ -92,19 +95,14 @@ void MX_FREERTOS_Init(void) {
   /* start timers, add new ones, ... */
   /* USER CODE END RTOS_TIMERS */
 
-  /* Create the queue(s) */
-  /* definition and creation of ChargingStatus */
-  osMessageQDef(ChargingStatus, 16, uint16_t);
-  ChargingStatusHandle = osMessageCreate(osMessageQ(ChargingStatus), NULL);
-
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */
-  /* definition and creation of defaultTask */
-  osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 128);
-  defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
+  /* definition and creation of Check */
+  osThreadDef(Check, StartCheckTask, osPriorityNormal, 0, 128);
+  CheckHandle = osThreadCreate(osThread(Check), NULL);
 
   /* definition and creation of Pilot */
   osThreadDef(Pilot, StartTaskPilot, osPriorityNormal, 0, 128);
@@ -120,27 +118,89 @@ void MX_FREERTOS_Init(void) {
 
 }
 
-/* USER CODE BEGIN Header_StartDefaultTask */
+/* USER CODE BEGIN Header_StartCheckTask */
 /**
-  * @brief  Function implementing the defaultTask thread.
+  * @brief  Function implementing the Check thread.
   * @param  argument: Not used 
   * @retval None
   */
-/* USER CODE END Header_StartDefaultTask */
-void StartDefaultTask(void const * argument)
+/* USER CODE END Header_StartCheckTask */
+void StartCheckTask(void const * argument)
 {
 
-  /* USER CODE BEGIN StartDefaultTask */
+  /* USER CODE BEGIN StartCheckTask */
+  int sample_ctr = 0;
+  static const uint32_t ADC_BUFFER_SIZE = 32;
+  uint16_t line1[ADC_BUFFER_SIZE];	// circular buffer that contains the adc samples in mV
+  uint16_t line2[ADC_BUFFER_SIZE];	// circular buffer that contains the adc samples in mV
+  uint16_t peak1;
+  uint16_t peak2;
+
+  uint16_t current[ADC_BUFFER_SIZE];	// circular buffer that contains the adc samples in mV
+  uint16_t peak_current;
+  uint16_t gfi[ADC_BUFFER_SIZE];	// circular buffer that contains the adc samples in mV
+  uint16_t peak_gfi;
+
+  for(int i = 0; i < ADC_BUFFER_SIZE; i++){
+	  line1[i] = 0;
+	  line2[i] = 0;
+	  gfi[i] = 0;
+	  current[i] = 0;
+  }
+
+  // ADC sample period
+
   /* Infinite loop */
   for(;;)
   {
+    osDelay(2);
+
+    line1[sample_ctr % ADC_BUFFER_SIZE] = read_line1_voltage();
+	line2[sample_ctr % ADC_BUFFER_SIZE] = read_line2_voltage();
+	current[sample_ctr % ADC_BUFFER_SIZE] = read_current();
+	gfi[sample_ctr % ADC_BUFFER_SIZE] = read_gfi();
+	sample_ctr++;
+
+	// find peaks
+	peak1 = 0;
+	peak2 = 0;
+	peak_current = 0;
+	peak_gfi = 0;
+	for(int i = 0; i < ADC_BUFFER_SIZE; i++){
+		if(line1[i] > peak1) {
+			peak1 = line1[i];
+		}
+		if(line2[i] > peak2) {
+			peak2 = line2[i];
+		}
+		if(current[i] > peak_current) {
+			peak_current = current[i];
+		}
+		if(gfi[i] > peak_gfi) {
+			peak_gfi = gfi[i];
+		}
+	}
+
+	// voltage is sum of line1 and line2
+
+	// 500 is to remove the diode voltage drop
+	// when input voltage is 0, the capacitor is getting charged by the leakage
+	// current of the adc pin (about 0.5 uA) so the voltage measured is about 500 mV
+	// so we consider that there is no voltage below 700 mV
+	peak1 = (peak1 > 700) ? peak1 - 500 : 0;
+	peak2 = (peak2 > 700) ? peak2 - 500 : 0;
+
+	v_line_rms = (double)(peak1 + peak2) / 5.67;
+	GFILevel = peak_gfi;
+
+	// current
+	MeasuredCurrent =  exp((peak_current + 466.94) / 837.41);
 
 
-	  osDelay(1);
 
 
   }
-  /* USER CODE END StartDefaultTask */
+  /* USER CODE END StartCheckTask */
 }
 
 /* USER CODE BEGIN Header_StartTaskPilot */
@@ -174,7 +234,7 @@ void StartTaskPilot(void const * argument)
   uint32_t samplectr = 0;
   int32_t sum = 0;
 
-  adc_Start();
+
 
   // init the buffer to the highest voltage (car unplugged)
   for(int i = 0; i < BUFFER_SIZE; i++){
@@ -239,37 +299,83 @@ void StartTaskPilot(void const * argument)
 void StartTaskMainTask(void const * argument)
 {
   /* USER CODE BEGIN StartTaskMainTask */
-  static uint16_t freectr = 0;
+
+  const uint32_t MAIN_TASK_PERIOD = 20;	// ms
+  const uint32_t FAULT_PERSISTANCE_DELAY = 25; // multiples of MAIN_TASK_PERIOD
+
+  uint16_t freectr = 0;
   enum states {IDLE, PRESENT, CHARGING, FAULT};
   uint8_t state = IDLE;
   BOOLEAN blinker_blue = FALSE;
   BOOLEAN blinker_green = FALSE;
+  uint32_t fault_persistance = 0;
+  uint32_t gfi_persistance = 0;
+
+  adc_Start();
+
+  // Read current from dip switches
+  uint16_t code = read_dip_switch();
+  if(code >= 15){
+	  // default current when all dip switches open (or no dip switch installed)
+	  EVSECurrent = 28.0;
+  } else {
+	  EVSECurrent = (code + 1) * 3.2;
+  }
+
   // turn ON D8 ( Power present )
   set_indicator(LED_POWER, TRUE);
   // turn OFF contactor (it should be already off... just to make sure)
   set_contactor(FALSE);
   // No PWM during state A
   set_pwm(FALSE, 0.0);
+
   /* Infinite loop */
   for(;;)
   {
 	// wait 20 ms, to let other tasks running
-	osDelay(20);
+	osDelay(MAIN_TASK_PERIOD);
 	freectr++;
     // blink blue disco led
 	if(freectr % 10 == 0){
 		set_indicator(LED_DISCO_BLUE, blinker_blue = !blinker_blue);
 	}
 
-	if(HAL_GPIO_ReadPin(BUTTON_GPIO_Port, BUTTON_Pin) == GPIO_PIN_SET){
-		set_contactor(TRUE);
-		set_indicator(LED_DISCO_GREEN, TRUE);
-	} else {
-		set_contactor(FALSE);
-		set_indicator(LED_DISCO_GREEN, FALSE);
-	}
-	state = 99;
+	// uncomment below to test the contactor with the blue button
+	// must comment all "set_contactor" later in the code
+//	if(HAL_GPIO_ReadPin(BUTTON_GPIO_Port, BUTTON_Pin) == GPIO_PIN_SET){
+//		set_contactor(TRUE);
+//		set_indicator(LED_DISCO_GREEN, TRUE);
+//	} else {
+//		set_contactor(FALSE);
+//		set_indicator(LED_DISCO_GREEN, FALSE);
+//	}
 
+
+	// Handle ground fault detection
+	// the GFI Level must be above the noise floor
+	// and this threshold has been tested to detect a 6.6 kohm to ground leak
+	if(GFILevel > 300){
+		if(gfi_persistance < FAULT_PERSISTANCE_DELAY){
+			gfi_persistance++;
+		} else {
+			state = FAULT;
+		}
+	} else {
+		gfi_persistance = 0;
+	}
+
+	// Main state machine
+	// IDLE => no car is plugged
+	// PRESENT => A car has been plugged in and we now publish the max current through the pilot signal and the contactor is closed
+	// CHARGING => The car is pulling current from the station
+	// FAULT => A problem has been detected and the contactor is open
+	//          To recover, mains has to be switched OFF and ON again
+	//   Possible problems are:
+	//     - ground fault
+	//     - overcurrent
+	//     - overvoltage
+	//	   - undervoltage (from mains or contactor failed open)
+	//     - contactor sticked (voltage has been detected but the contactor should be open)
 
     switch(state){
     case IDLE:
@@ -286,19 +392,29 @@ void StartTaskMainTask(void const * argument)
 		set_indicator(LED_CHARGING, FALSE);
     	// turn OFF D12 (Trouble indicator)
 		set_indicator(LED_FAULT, FALSE);
-    	if(PilotState == PILOT_VEHICLE_PRESENT){
+
+		// check voltage (must be low)
+		if(v_line_rms > 80.0){
+			fault_persistance++;
+		} else {
+			fault_persistance = 0;
+		}
+
+
+
+		if(fault_persistance > FAULT_PERSISTANCE_DELAY){
+			state = FAULT;
+		} else if(PilotState == PILOT_VEHICLE_PRESENT || PilotState == PILOT_READY){
+			fault_persistance = 0;
     		state = PRESENT;
-    		set_pwm(TRUE, 24.0);
+    		set_pwm(TRUE, EVSECurrent);
     	}
     	break;
     case PRESENT:
-
-    	set_contactor(TRUE);
-
     	// turn OFF debug led green
     	set_indicator(LED_DISCO_GREEN, TRUE);
-    	// turn OFF contactor
-
+    	// turn ON contactor
+    	set_contactor(TRUE);
     	// turn ON D9 (Ready to charge indicator)
     	set_indicator(LED_READY, TRUE);
     	// turn ON D10 (Connected vehicle indicator)
@@ -308,12 +424,22 @@ void StartTaskMainTask(void const * argument)
     	// turn OFF D12 (Trouble indicator)
 		set_indicator(LED_FAULT, FALSE);
 
+		// check voltage
+		if(v_line_rms < 90.0 || v_line_rms > 300.00){
+			fault_persistance++;
+		} else {
+			fault_persistance = 0;
+		}
 
-		if(PilotState == PILOT_READY){
+		if(fault_persistance > FAULT_PERSISTANCE_DELAY){
+			state = FAULT;
+		} else if(PilotState == PILOT_READY){
     		state = CHARGING;
+    		fault_persistance = 0;
     	} else if(PilotState == PILOT_VEHICLE_NOT_DETECTED){
     		state = IDLE;
     		set_pwm(FALSE, 0.0);
+    		fault_persistance = 0;
     	}
     	break;
     case CHARGING:
@@ -334,18 +460,22 @@ void StartTaskMainTask(void const * argument)
     	// turn OFF D12 (Trouble indicator)
 		set_indicator(LED_FAULT, FALSE);
 
-		if(PilotState == PILOT_VEHICLE_PRESENT){
+
+		// check voltage
+		if(v_line_rms < 90.0 || v_line_rms > 300.00 || MeasuredCurrent > EVSECurrent * 1.25){
+			fault_persistance++;
+		} else {
+			fault_persistance = 0;
+		}
+
+		if(fault_persistance > FAULT_PERSISTANCE_DELAY){
+			state = FAULT;
+		} else if(PilotState == PILOT_VEHICLE_PRESENT){
     		state = PRESENT;
     	} else if(PilotState == PILOT_VEHICLE_NOT_DETECTED){
     		state = IDLE;
     		set_pwm(FALSE, 0.0);
     	}
-
-    	// detect ground fault
-    	// detect overcurrent
-    	// detect undervoltage
-    	// detect overvoltage
-
 
     	break;
     case FAULT:

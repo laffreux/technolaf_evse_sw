@@ -1,3 +1,4 @@
 gpio.c:40:6:MX_GPIO_Init	56	static
-gpio.c:82:6:set_contactor	8	static
-gpio.c:91:6:set_indicator	8	static
+gpio.c:88:6:set_contactor	8	static
+gpio.c:97:6:set_indicator	8	static
+gpio.c:125:10:read_dip_switch	16	static

@@ -76,6 +76,12 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
+  /*Configure GPIO pins : PAPin PAPin PAPin PAPin */
+  GPIO_InitStruct.Pin = DIPSW0_Pin|DIPSW1_Pin|DIPSW2_Pin|DIPSW3_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
 }
 
 /* USER CODE BEGIN 2 */
@@ -113,6 +119,16 @@ void set_indicator(INDICATOR led, BOOLEAN state){
 		HAL_GPIO_WritePin(LED_D12_GPIO_Port, LED_D12_Pin, state);
 		break;
 	}
+}
+
+// returns a code from 0 to 15 according to the dip switches's positions
+uint16_t read_dip_switch(void){
+	uint16_t value = 0;
+	value |= HAL_GPIO_ReadPin(DIPSW0_GPIO_Port, DIPSW0_Pin) == GPIO_PIN_SET ? 1 : 0;
+	value |= HAL_GPIO_ReadPin(DIPSW1_GPIO_Port, DIPSW1_Pin) == GPIO_PIN_SET ? 2 : 0;
+	value |= HAL_GPIO_ReadPin(DIPSW2_GPIO_Port, DIPSW2_Pin) == GPIO_PIN_SET ? 4 : 0;
+	value |= HAL_GPIO_ReadPin(DIPSW3_GPIO_Port, DIPSW3_Pin) == GPIO_PIN_SET ? 8 : 0;
+	return value;
 }
 
 /* USER CODE END 2 */

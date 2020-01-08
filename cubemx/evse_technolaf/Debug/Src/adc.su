@@ -2,4 +2,8 @@ adc.c:32:6:MX_ADC_Init	24	static
 adc.c:96:6:HAL_ADC_MspInit	48	static
 adc.c:145:6:HAL_ADC_MspDeInit	8	static
 adc.c:176:6:adc_Start	8	static
-adc.c:182:9:read_pilot_voltage	8	static
+adc.c:182:10:read_pilot_voltage	0	static
+adc.c:191:10:read_line1_voltage	0	static
+adc.c:199:10:read_line2_voltage	0	static
+adc.c:207:10:read_current	0	static
+adc.c:215:10:read_gfi	0	static

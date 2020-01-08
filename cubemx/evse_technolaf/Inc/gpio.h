@@ -40,6 +40,7 @@ void MX_GPIO_Init(void);
 /* USER CODE BEGIN Prototypes */
 void set_indicator(INDICATOR led, GPIO_PinState state);
 void set_contactor(BOOLEAN state);
+uint16_t read_dip_switch(void);
 
 /* USER CODE END Prototypes */
 

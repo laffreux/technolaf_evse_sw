@@ -179,14 +179,48 @@ void adc_Start(void){
 
 
 
-int16_t read_pilot_voltage(void){
+uint16_t read_pilot_voltage(void){
 	uint32_t c;
-	int16_t mv;
+	uint16_t mv;
 	c = Buffer[2];
-	mv = ((uint32_t)c * 3000) / 4096.0;
+	mv = ((uint32_t)c * 3000) / 4096;
 	return mv;
 
 }
+
+uint16_t read_line1_voltage(void){
+	uint32_t c;
+	uint16_t mv;
+	c = Buffer[0];
+	mv = ((uint32_t)c * 3000) / 4096;
+	return mv;
+}
+
+uint16_t read_line2_voltage(void){
+	uint32_t c;
+	uint16_t mv;
+	c = Buffer[1];
+	mv = ((uint32_t)c * 3000) / 4096;
+	return mv;
+}
+
+uint16_t read_current(void){
+	uint32_t c;
+	uint16_t mv;
+	c = Buffer[3];
+	mv = ((uint32_t)c * 3000) / 4096;
+	return mv;
+}
+
+uint16_t read_gfi(void){
+	uint32_t c;
+	uint16_t mv;
+	c = Buffer[4];
+	mv = ((uint32_t)c * 3000) / 4096;
+	return mv;
+}
+
+
 
 /* USER CODE END 1 */
 
